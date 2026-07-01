@@ -32,6 +32,11 @@ private struct SettingsForm: View {
                 Toggle("Skip prompts during calendar meetings", isOn: $settings.calendarBusyIsBlocking)
             }
 
+            Section("Between sets") {
+                Stepper("Rest timer: \(settings.restSeconds)s",
+                        value: $settings.restSeconds, in: 15...300, step: 15)
+            }
+
             Section("Muscle groups") {
                 ForEach(MuscleGroup.allCases) { group in
                     Toggle(group.displayName, isOn: binding(for: group))

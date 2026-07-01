@@ -15,6 +15,8 @@ final class AppSettings {
     var enabledMuscleGroupsRaw: [String]
     /// If the user pauses for the day, prompting resumes the next eligible day.
     var pausedUntil: Date?
+    /// Default rest-timer duration between sets, in seconds. Defaulted for migration.
+    var restSeconds: Int = 90
 
     init(
         workStartHour: Int = 9,
@@ -24,7 +26,8 @@ final class AppSettings {
         weekdaysOnly: Bool = true,
         calendarBusyIsBlocking: Bool = true,
         enabledMuscleGroups: [MuscleGroup] = MuscleGroup.allCases,
-        pausedUntil: Date? = nil
+        pausedUntil: Date? = nil,
+        restSeconds: Int = 90
     ) {
         self.workStartHour = workStartHour
         self.workEndHour = workEndHour
@@ -34,6 +37,7 @@ final class AppSettings {
         self.calendarBusyIsBlocking = calendarBusyIsBlocking
         self.enabledMuscleGroupsRaw = enabledMuscleGroups.map(\.rawValue)
         self.pausedUntil = pausedUntil
+        self.restSeconds = restSeconds
     }
 
     var enabledMuscleGroups: Set<MuscleGroup> {

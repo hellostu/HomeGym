@@ -6,6 +6,7 @@ struct WorkoutPopupView: View {
     @EnvironmentObject private var coordinator: AppCoordinator
     @Environment(\.openURL) private var openURL
 
+    @StateObject private var restTimer = RestTimer()
     @State private var weight: Double = 0
     @State private var reps: Int = 8
     @State private var didPrime = false
@@ -22,6 +23,7 @@ struct WorkoutPopupView: View {
                 }
             }
             entryRow
+            restRow
             actions
         }
         .padding(20)
@@ -149,10 +151,36 @@ struct WorkoutPopupView: View {
             ), step: 1, format: "%.0f")
             Button {
                 coordinator.logSet(weight: weighted ? weight : 0, reps: reps)
+                restTimer.start(seconds: coordinator.settings.restSeconds)
             } label: {
                 Label("Log set", systemImage: "plus.circle.fill")
             }
             .buttonStyle(.borderedProminent)
+        }
+    }
+
+    /// Rest countdown between sets. Auto-starts when a set is logged; can also be
+    /// started manually. Shows remaining time + progress with quick +15s / Skip controls.
+    @ViewBuilder
+    private var restRow: some View {
+        if restTimer.isRunning {
+            HStack(spacing: 12) {
+                Image(systemName: "timer").foregroundStyle(.tint)
+                Text(RestTimer.format(restTimer.remaining))
+                    .font(.title3.monospacedDigit().weight(.semibold))
+                    .frame(minWidth: 48, alignment: .leading)
+                ProgressView(value: restTimer.progress)
+                Button("+15s") { restTimer.add(seconds: 15) }
+                Button("Skip") { restTimer.stop() }
+            }
+        } else {
+            Button {
+                restTimer.start(seconds: coordinator.settings.restSeconds)
+            } label: {
+                Label("Start rest (\(coordinator.settings.restSeconds)s)", systemImage: "timer")
+            }
+            .buttonStyle(.plain)
+            .foregroundStyle(.secondary)
         }
     }
 

@@ -27,7 +27,7 @@ final class WorkoutWindowController {
         window.level = .floating
         window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
         window.isReleasedWhenClosed = false
-        window.setContentSize(NSSize(width: 360, height: 460))
+        window.setContentSize(NSSize(width: 380, height: 540))
         window.center()
 
         self.window = window

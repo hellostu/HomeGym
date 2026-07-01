@@ -22,6 +22,8 @@ your desk for a full session.
   barbell/EZ bar step from the empty-bar weight (20 kg / 9.5 kg) in 5 kg plate-pair jumps.
 - **How-to guidance**: every exercise has step-by-step form cues and a key tip in the
   popup, plus a **Watch demo** button that opens a video demonstration in your browser.
+- **Rest timer between sets**: logging a set auto-starts a countdown (default 90s,
+  configurable) with +15s / Skip controls and a chime when rest is up.
 - **History & progress**: per-exercise session log and a top-weight trend chart.
 
 ## Running it
