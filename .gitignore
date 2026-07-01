@@ -1,0 +1,35 @@
+# macOS
+.DS_Store
+
+# Xcode build output
+build/
+DerivedData/
+*.moved-aside
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+!default.mode1v3
+*.mode2v3
+!default.mode2v3
+*.perspectivev3
+!default.perspectivev3
+
+# Xcode per-user state (keep shared schemes, ignore user-specific data)
+xcuserdata/
+*.xcuserstate
+*.xcscmblueprint
+*.xccheckout
+
+# Swift Package Manager
+.build/
+.swiftpm/
+
+# CocoaPods / Carthage (unused here, but safe to ignore)
+Pods/
+Carthage/Build/
+
+# Accio / fastlane / misc
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
