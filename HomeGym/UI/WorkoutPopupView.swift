@@ -155,12 +155,17 @@ struct WorkoutPopupView: View {
 
     private func primeFromSuggestion() {
         guard !didPrime, let s = suggestion else { return }
-        if let equipment = exercise?.equipment, equipment.isWeighted, s.weight > 0 {
+        // Resuming a session with logged sets: continue from the last set's numbers.
+        if let last = coordinator.activeSession?.orderedSets.last {
+            weight = last.weight
+            reps = last.reps
+        } else if let equipment = exercise?.equipment, equipment.isWeighted, s.weight > 0 {
             weight = equipment.snap(s.weight)
+            reps = s.reps
         } else {
             weight = s.weight
+            reps = s.reps
         }
-        reps = s.reps
         didPrime = true
     }
 }

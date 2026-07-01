@@ -64,26 +64,41 @@ final class AppCoordinator: ObservableObject {
         startWorkoutNow(postNotification: true)
     }
 
-    /// Plan and present a workout immediately (menu "Do a workout now" or a fired slot).
+    /// Present a workout immediately (menu "Do a workout now" or a fired slot).
+    /// Resumes the most recent unfinished session so you can pick up where you left
+    /// off; only plans a fresh workout when the last one was completed or skipped.
     func startWorkoutNow(postNotification: Bool = false) {
-        guard let plan = planWorkout() else { return }
+        let session: SnackSession
+        let suggestion: Suggestion
 
-        let session = SnackSession(
-            exercise: plan.exercise,
-            targetSets: plan.suggestion.sets,
-            targetReps: plan.suggestion.reps,
-            targetWeight: plan.suggestion.weight
-        )
-        context.insert(session)
-        try? context.save()
+        if let existing = activeSession ?? resumableSession(), let exercise = existing.exercise {
+            // Resume: rebuild the suggestion for the same exercise (its completed
+            // history is unchanged, so this reproduces the original targets).
+            session = existing
+            suggestion = ProgressionEngine.suggest(for: exercise, history: completedSessions(for: exercise))
+        } else {
+            guard let plan = planWorkout() else { return }
+            let fresh = SnackSession(
+                exercise: plan.exercise,
+                targetSets: plan.suggestion.sets,
+                targetReps: plan.suggestion.reps,
+                targetWeight: plan.suggestion.weight
+            )
+            context.insert(fresh)
+            try? context.save()
+            session = fresh
+            suggestion = plan.suggestion
+        }
 
         activeSession = session
-        currentSuggestion = plan.suggestion
+        currentSuggestion = suggestion
 
-        if postNotification {
+        if postNotification, let name = session.exercise?.name {
+            let done = session.sets.count
+            let progress = done > 0 ? " (\(done)/\(suggestion.sets) done)" : ""
             notifications.postWorkoutPrompt(
                 title: "Time for a snack workout 💪",
-                body: "\(plan.suggestion.sets)×\(plan.suggestion.reps) \(plan.exercise.name)"
+                body: "\(suggestion.sets)×\(suggestion.reps) \(name)\(progress)"
             )
         }
         windowController.show(coordinator: self)
@@ -211,5 +226,12 @@ final class AppCoordinator: ObservableObject {
     private func completedSessions(for exercise: Exercise) -> [SnackSession] {
         let all = (try? context.fetch(FetchDescriptor<SnackSession>())) ?? []
         return all.filter { $0.completed && $0.exercise?.persistentModelID == exercise.persistentModelID }
+    }
+
+    /// The most recent unfinished session (neither completed nor skipped) whose exercise
+    /// still exists — what "Do a workout now" resumes so you can pick up where you left off.
+    private func resumableSession() -> SnackSession? {
+        let all = (try? context.fetch(FetchDescriptor<SnackSession>())) ?? []
+        return SessionResume.candidate(from: all)
     }
 }
