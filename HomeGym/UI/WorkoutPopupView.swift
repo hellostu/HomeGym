@@ -52,6 +52,11 @@ struct WorkoutPopupView: View {
             if let s = suggestion {
                 Text(targetLine(s))
                     .font(.headline)
+                if exercise?.isUnilateral == true {
+                    Label("Do both sides for each set", systemImage: "arrow.left.arrow.right")
+                        .font(.subheadline)
+                        .foregroundStyle(.tint)
+                }
                 Text(s.rationale)
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
@@ -66,7 +71,8 @@ struct WorkoutPopupView: View {
     private func targetLine(_ s: Suggestion) -> String {
         let weighted = (exercise?.equipment.isWeighted ?? false) && s.weight > 0
         let w = weighted ? " @ \(ProgressionEngine.format(s.weight)) kg" : ""
-        return "Target: \(s.sets) × \(s.reps) reps\(w)"
+        let perSide = exercise?.isUnilateral == true ? " per side" : ""
+        return "Target: \(s.sets) × \(s.reps) reps\(perSide)\(w)"
     }
 
     @ViewBuilder

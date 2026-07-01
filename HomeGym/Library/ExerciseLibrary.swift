@@ -9,6 +9,8 @@ enum ExerciseLibrary {
     struct Guidance {
         let steps: [String]
         let tip: String
+        /// Worked one side at a time (target is "per side").
+        var unilateral: Bool = false
     }
 
     /// Keyed by exercise name so it can both seed new stores and backfill existing ones.
@@ -76,8 +78,8 @@ enum ExerciseLibrary {
         "DB Row": Guidance(steps: [
             "Hinge forward with a flat back, one hand and knee supported on the bench.",
             "Let the dumbbell hang, then pull it to your hip, driving the elbow back.",
-            "Lower under control to a full stretch."
-        ], tip: "Lead with the elbow and squeeze the shoulder blade; don't twist the torso."),
+            "Lower under control to a full stretch, then switch sides."
+        ], tip: "Lead with the elbow and squeeze the shoulder blade; don't twist the torso.", unilateral: true),
         "Barbell Row": Guidance(steps: [
             "Hinge at the hips with a flat back, bar hanging at arm's length.",
             "Pull the bar to your lower ribs / upper stomach, elbows back.",
@@ -102,7 +104,7 @@ enum ExerciseLibrary {
             "Hold a dumbbell in each hand at your sides, standing tall.",
             "Step forward and lower until both knees are about 90°.",
             "Push through the front heel to step straight into the next lunge."
-        ], tip: "Keep your torso upright; don't let the front knee cave inward."),
+        ], tip: "Keep your torso upright; don't let the front knee cave inward.", unilateral: true),
         "DB Romanian Deadlift": Guidance(steps: [
             "Hold dumbbells in front of your thighs, knees softly bent.",
             "Hinge at the hips, pushing them back, lowering the weights along your legs.",
@@ -169,6 +171,7 @@ enum ExerciseLibrary {
             if let g = guidance[exercise.name] {
                 exercise.instructions = g.steps
                 exercise.formTip = g.tip
+                exercise.isUnilateral = g.unilateral
             }
         }
         return exercises
@@ -191,18 +194,18 @@ enum ExerciseLibrary {
         try? context.save()
     }
 
-    /// Backfills how-to guidance onto exercises that predate it (e.g. an already-seeded
-    /// store from an earlier version). Cheap to run on every launch.
+    /// Syncs how-to guidance + the unilateral flag onto stored exercises, so an
+    /// already-seeded store from an earlier version picks up new fields. Idempotent
+    /// and cheap to run on every launch (only saves when something actually changed).
     @MainActor
     static func ensureGuidance(_ context: ModelContext) {
         let all = (try? context.fetch(FetchDescriptor<Exercise>())) ?? []
         var changed = false
-        for exercise in all where exercise.instructions.isEmpty {
-            if let g = guidance[exercise.name] {
-                exercise.instructions = g.steps
-                exercise.formTip = g.tip
-                changed = true
-            }
+        for exercise in all {
+            guard let g = guidance[exercise.name] else { continue }
+            if exercise.instructions != g.steps { exercise.instructions = g.steps; changed = true }
+            if exercise.formTip != g.tip { exercise.formTip = g.tip; changed = true }
+            if exercise.isUnilateral != g.unilateral { exercise.isUnilateral = g.unilateral; changed = true }
         }
         if changed { try? context.save() }
     }

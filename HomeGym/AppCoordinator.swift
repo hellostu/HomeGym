@@ -97,9 +97,10 @@ final class AppCoordinator: ObservableObject {
         if postNotification, let name = session.exercise?.name {
             let done = session.sets.count
             let progress = done > 0 ? " (\(done)/\(suggestion.sets) done)" : ""
+            let perSide = session.exercise?.isUnilateral == true ? " per side" : ""
             notifications.postWorkoutPrompt(
                 title: "Time for a snack workout 💪",
-                body: "\(suggestion.sets)×\(suggestion.reps) \(name)\(progress)"
+                body: "\(suggestion.sets)×\(suggestion.reps) \(name)\(perSide)\(progress)"
             )
         }
         windowController.show(coordinator: self)

@@ -21,6 +21,9 @@ final class Exercise {
     var instructions: [String] = []
     /// A single key form cue. Defaulted for lightweight migration.
     var formTip: String = ""
+    /// Worked one side at a time (e.g. DB row, walking lunge): the target is "per side"
+    /// and you do both sides for each logged set. Defaulted for lightweight migration.
+    var isUnilateral: Bool = false
 
     init(
         name: String,
@@ -34,7 +37,8 @@ final class Exercise {
         isEnabled: Bool = true,
         lastPerformed: Date? = nil,
         instructions: [String] = [],
-        formTip: String = ""
+        formTip: String = "",
+        isUnilateral: Bool = false
     ) {
         self.name = name
         self.muscleGroupRaw = muscleGroup.rawValue
@@ -48,6 +52,7 @@ final class Exercise {
         self.lastPerformed = lastPerformed
         self.instructions = instructions
         self.formTip = formTip
+        self.isUnilateral = isUnilateral
     }
 
     /// A video demonstration for this exercise — a YouTube search so it always resolves
