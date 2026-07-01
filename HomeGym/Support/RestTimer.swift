@@ -8,6 +8,9 @@ final class RestTimer: ObservableObject {
     @Published private(set) var tickNow: Date = Date()
     private(set) var duration: TimeInterval = 0
     private var timer: Timer?
+    /// Preloaded and retained: an inline `NSSound(named:)?.play()` gets deallocated
+    /// before the async playback starts, so it never actually chimes.
+    private let chime = NSSound(named: "Glass")
 
     var remaining: TimeInterval { RestTimer.remaining(endDate: endDate, now: tickNow) }
     var isRunning: Bool { remaining > 0 }
@@ -52,7 +55,16 @@ final class RestTimer: ObservableObject {
         if remaining <= 0 {
             timer?.invalidate()
             timer = nil
-            NSSound(named: "Glass")?.play()
+            playChime()
+        }
+    }
+
+    private func playChime() {
+        if let chime {
+            chime.stop()   // rewind if it's somehow still playing
+            chime.play()
+        } else {
+            NSSound.beep()
         }
     }
 
