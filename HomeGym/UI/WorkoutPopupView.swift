@@ -4,18 +4,24 @@ import SwiftUI
 /// then finish, skip, or snooze.
 struct WorkoutPopupView: View {
     @EnvironmentObject private var coordinator: AppCoordinator
+    @Environment(\.openURL) private var openURL
 
     @State private var weight: Double = 0
     @State private var reps: Int = 8
     @State private var didPrime = false
+    @State private var showHowTo = false
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: 14) {
             header
-            targetCard
-            loggedSets
+            ScrollView {
+                VStack(alignment: .leading, spacing: 14) {
+                    targetCard
+                    howTo
+                    loggedSets
+                }
+            }
             entryRow
-            Spacer(minLength: 0)
             actions
         }
         .padding(20)
@@ -61,6 +67,45 @@ struct WorkoutPopupView: View {
         let weighted = (exercise?.equipment.isWeighted ?? false) && s.weight > 0
         let w = weighted ? " @ \(ProgressionEngine.format(s.weight)) kg" : ""
         return "Target: \(s.sets) × \(s.reps) reps\(w)"
+    }
+
+    @ViewBuilder
+    private var howTo: some View {
+        let steps = exercise?.instructions ?? []
+        VStack(alignment: .leading, spacing: 8) {
+            if !steps.isEmpty {
+                DisclosureGroup(isExpanded: $showHowTo) {
+                    VStack(alignment: .leading, spacing: 6) {
+                        ForEach(Array(steps.enumerated()), id: \.offset) { index, step in
+                            HStack(alignment: .firstTextBaseline, spacing: 6) {
+                                Text("\(index + 1).")
+                                    .foregroundStyle(.secondary)
+                                    .monospacedDigit()
+                                Text(step)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                        }
+                        if let tip = exercise?.formTip, !tip.isEmpty {
+                            Label(tip, systemImage: "lightbulb.fill")
+                                .foregroundStyle(.secondary)
+                                .padding(.top, 2)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                    }
+                    .font(.callout)
+                    .padding(.top, 6)
+                } label: {
+                    Text("How to do it").font(.headline)
+                }
+            }
+            if let url = exercise?.demoVideoURL {
+                Button {
+                    openURL(url)
+                } label: {
+                    Label("Watch demo", systemImage: "play.rectangle.fill")
+                }
+            }
+        }
     }
 
     private var loggedSets: some View {

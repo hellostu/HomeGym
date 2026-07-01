@@ -29,6 +29,7 @@ final class AppCoordinator: ObservableObject {
         didBootstrap = true
 
         ExerciseLibrary.seedIfNeeded(context)
+        ExerciseLibrary.ensureGuidance(context)
         calendar.refreshAuthorization()
         Task { await notifications.refreshAuthorization() }
 

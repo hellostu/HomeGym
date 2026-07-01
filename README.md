@@ -20,6 +20,8 @@ your desk for a full session.
 - **Equipment-accurate weights**: suggestions only ever land on loads you can actually
   make — the adjustable dumbbells snap to their fixed (pound-derived) kg ladder, and the
   barbell/EZ bar step from the empty-bar weight (20 kg / 9.5 kg) in 5 kg plate-pair jumps.
+- **How-to guidance**: every exercise has step-by-step form cues and a key tip in the
+  popup, plus a **Watch demo** button that opens a video demonstration in your browser.
 - **History & progress**: per-exercise session log and a top-weight trend chart.
 
 ## Running it

@@ -17,6 +17,10 @@ final class Exercise {
     var isEnabled: Bool
     /// When this exercise was last performed — drives least-recently-trained rotation.
     var lastPerformed: Date?
+    /// Ordered how-to steps shown in the popup. Defaulted so existing stores migrate.
+    var instructions: [String] = []
+    /// A single key form cue. Defaulted for lightweight migration.
+    var formTip: String = ""
 
     init(
         name: String,
@@ -28,7 +32,9 @@ final class Exercise {
         weightIncrement: Double? = nil,
         startingWeight: Double = 0,
         isEnabled: Bool = true,
-        lastPerformed: Date? = nil
+        lastPerformed: Date? = nil,
+        instructions: [String] = [],
+        formTip: String = ""
     ) {
         self.name = name
         self.muscleGroupRaw = muscleGroup.rawValue
@@ -40,6 +46,16 @@ final class Exercise {
         self.startingWeight = startingWeight
         self.isEnabled = isEnabled
         self.lastPerformed = lastPerformed
+        self.instructions = instructions
+        self.formTip = formTip
+    }
+
+    /// A video demonstration for this exercise — a YouTube search so it always resolves
+    /// to current, relevant clips rather than a hard-coded video that could disappear.
+    var demoVideoURL: URL? {
+        var components = URLComponents(string: "https://www.youtube.com/results")
+        components?.queryItems = [URLQueryItem(name: "search_query", value: "\(name) exercise proper form")]
+        return components?.url
     }
 
     var muscleGroup: MuscleGroup {
