@@ -30,8 +30,11 @@ enum ProgressionEngine {
             .first
 
         guard let last else {
-            // First time: conservative starting load at the bottom of the rep range.
-            let w = exercise.startingWeight
+            // First time: conservative starting load, snapped to a weight the
+            // equipment can actually make, at the bottom of the rep range.
+            let w = exercise.equipment.isWeighted && exercise.startingWeight > 0
+                ? exercise.equipment.snap(exercise.startingWeight)
+                : exercise.startingWeight
             let weightPart = exercise.equipment.isWeighted && w > 0 ? " @ \(Self.format(w)) kg" : ""
             return Suggestion(
                 weight: w,
@@ -48,14 +51,25 @@ enum ProgressionEngine {
 
         if allHitTop {
             if exercise.equipment.isWeighted {
-                let next = lastWeight + exercise.weightIncrement
-                return Suggestion(
-                    weight: next,
-                    reps: lower,
-                    sets: sets,
-                    rationale: "You hit \(sets)×\(upper) @ \(Self.format(lastWeight)) kg last time — step up to \(Self.format(next)) kg.",
-                    isProgression: true
-                )
+                if let next = exercise.equipment.nextWeight(above: lastWeight) {
+                    return Suggestion(
+                        weight: next,
+                        reps: lower,
+                        sets: sets,
+                        rationale: "You hit \(sets)×\(upper) @ \(Self.format(lastWeight)) kg last time — step up to the next setting, \(Self.format(next)) kg.",
+                        isProgression: true
+                    )
+                } else {
+                    // Already at the heaviest load this equipment can make (top of the
+                    // dumbbell ladder): keep the weight and add reps instead.
+                    return Suggestion(
+                        weight: lastWeight,
+                        reps: upper + 2,
+                        sets: sets,
+                        rationale: "You're at the heaviest setting (\(Self.format(lastWeight)) kg) — add reps or slow the tempo.",
+                        isProgression: false
+                    )
+                }
             } else {
                 // Bodyweight: progress by adding reps beyond the range.
                 let next = upper + 2

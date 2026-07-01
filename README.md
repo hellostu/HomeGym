@@ -17,6 +17,9 @@ your desk for a full session.
   stays balanced.
 - **Double progression**: each exercise has a rep range (default 8–12). Hit the top on
   every set and it suggests more weight next time; otherwise hold the weight and chase reps.
+- **Equipment-accurate weights**: suggestions only ever land on loads you can actually
+  make — the adjustable dumbbells snap to their fixed (pound-derived) kg ladder, and the
+  barbell/EZ bar step from the empty-bar weight (20 kg / 9.5 kg) in 5 kg plate-pair jumps.
 - **History & progress**: per-exercise session log and a top-weight trend chart.
 
 ## Running it

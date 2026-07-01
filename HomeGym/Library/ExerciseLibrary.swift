@@ -11,7 +11,7 @@ enum ExerciseLibrary {
         [
             // Biceps
             Exercise(name: "Dumbbell Curl", muscleGroup: .biceps, equipment: .adjustableDumbbells, startingWeight: 8),
-            Exercise(name: "EZ-Bar Curl", muscleGroup: .biceps, equipment: .ezBar, startingWeight: 15),
+            Exercise(name: "EZ-Bar Curl", muscleGroup: .biceps, equipment: .ezBar, startingWeight: 14.5),
             Exercise(name: "Hammer Curl", muscleGroup: .biceps, equipment: .adjustableDumbbells, startingWeight: 8),
 
             // Triceps

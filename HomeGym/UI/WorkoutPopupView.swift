@@ -89,8 +89,8 @@ struct WorkoutPopupView: View {
     private var entryRow: some View {
         let weighted = exercise?.equipment.isWeighted ?? false
         return HStack(spacing: 12) {
-            if weighted {
-                labeledStepper(title: "kg", value: $weight, step: exercise?.weightIncrement ?? 2.0, format: "%.1f")
+            if weighted, let equipment = exercise?.equipment {
+                weightStepper(for: equipment)
             }
             labeledStepper(title: "reps", value: Binding(
                 get: { Double(reps) },
@@ -102,6 +102,23 @@ struct WorkoutPopupView: View {
                 Label("Log set", systemImage: "plus.circle.fill")
             }
             .buttonStyle(.borderedProminent)
+        }
+    }
+
+    /// Weight stepper that snaps to loads the equipment can actually make (dumbbell
+    /// ladder rungs, or empty-bar + plate-pair steps for the barbell / EZ bar).
+    private func weightStepper(for equipment: Equipment) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text("kg").font(.caption).foregroundStyle(.secondary)
+            Stepper {
+                Text(ProgressionEngine.format(weight))
+                    .monospacedDigit()
+                    .frame(minWidth: 44, alignment: .leading)
+            } onIncrement: {
+                weight = equipment.nextWeight(above: weight) ?? weight
+            } onDecrement: {
+                weight = equipment.previousWeight(below: weight) ?? weight
+            }
         }
     }
 
@@ -138,7 +155,11 @@ struct WorkoutPopupView: View {
 
     private func primeFromSuggestion() {
         guard !didPrime, let s = suggestion else { return }
-        weight = s.weight
+        if let equipment = exercise?.equipment, equipment.isWeighted, s.weight > 0 {
+            weight = equipment.snap(s.weight)
+        } else {
+            weight = s.weight
+        }
         reps = s.reps
         didPrime = true
     }
