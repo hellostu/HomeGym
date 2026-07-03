@@ -16,9 +16,19 @@ struct SettingsView: View {
 private struct SettingsForm: View {
     @EnvironmentObject private var coordinator: AppCoordinator
     @Bindable var settings: AppSettings
+    @State private var launchAtLogin = LoginItem.isEnabled
 
     var body: some View {
         Form {
+            Section("General") {
+                Toggle("Start HomeGym at login", isOn: $launchAtLogin)
+                    .onChange(of: launchAtLogin) { _, newValue in
+                        if !LoginItem.setEnabled(newValue) {
+                            launchAtLogin = LoginItem.isEnabled   // revert if it failed
+                        }
+                    }
+            }
+
             Section("When to prompt") {
                 Stepper("Work starts at \(settings.workStartHour):00",
                         value: $settings.workStartHour, in: 0...23)

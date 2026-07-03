@@ -24,6 +24,9 @@ final class Exercise {
     /// Worked one side at a time (e.g. DB row, walking lunge): the target is "per side"
     /// and you do both sides for each logged set. Defaulted for lightweight migration.
     var isUnilateral: Bool = false
+    /// Uses a single dumbbell held in both hands (goblet squat, pullover) or one at a
+    /// time (row), rather than a dumbbell in each hand — so the weight isn't "each".
+    var usesSingleDumbbell: Bool = false
 
     init(
         name: String,
@@ -38,7 +41,8 @@ final class Exercise {
         lastPerformed: Date? = nil,
         instructions: [String] = [],
         formTip: String = "",
-        isUnilateral: Bool = false
+        isUnilateral: Bool = false,
+        usesSingleDumbbell: Bool = false
     ) {
         self.name = name
         self.muscleGroupRaw = muscleGroup.rawValue
@@ -53,6 +57,7 @@ final class Exercise {
         self.instructions = instructions
         self.formTip = formTip
         self.isUnilateral = isUnilateral
+        self.usesSingleDumbbell = usesSingleDumbbell
     }
 
     /// A video demonstration for this exercise — a YouTube search so it always resolves

@@ -11,6 +11,7 @@ struct MenuContent: View {
                 .font(.headline)
 
             statusLine
+            weeklyLine
 
             Divider()
 
@@ -58,6 +59,12 @@ struct MenuContent: View {
         .buttonStyle(.plain)
         .padding(12)
         .frame(width: 240, alignment: .leading)
+    }
+
+    private var weeklyLine: some View {
+        let count = coordinator.completedThisWeekCount()
+        return Label("\(count) workout\(count == 1 ? "" : "s") this week", systemImage: "flame")
+            .foregroundStyle(.secondary)
     }
 
     @ViewBuilder

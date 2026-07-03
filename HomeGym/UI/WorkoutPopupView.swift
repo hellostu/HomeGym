@@ -1,4 +1,5 @@
 import SwiftUI
+import SwiftData
 
 /// The floating prompt: shows the suggested exercise + target, lets Stu log each set,
 /// then finish, skip, or snooze.
@@ -9,7 +10,7 @@ struct WorkoutPopupView: View {
     @StateObject private var restTimer = RestTimer()
     @State private var weight: Double = 0
     @State private var reps: Int = 8
-    @State private var didPrime = false
+    @State private var primedFor: PersistentIdentifier?
     @State private var showHowTo = false
 
     var body: some View {
@@ -18,6 +19,7 @@ struct WorkoutPopupView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 14) {
                     targetCard
+                    warmupCue
                     howTo
                     loggedSets
                 }
@@ -28,11 +30,17 @@ struct WorkoutPopupView: View {
         }
         .padding(20)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .onAppear(perform: primeFromSuggestion)
+        .overlay { celebrationOverlay }
+        .onAppear(perform: primeIfNeeded)
+        .onChange(of: exercise?.persistentModelID) { primeIfNeeded() }
     }
 
     private var exercise: Exercise? { coordinator.activeSession?.exercise }
     private var suggestion: Suggestion? { coordinator.currentSuggestion }
+    /// Weight shown "each" only for exercises using a dumbbell in each hand.
+    private var pairedDumbbells: Bool {
+        exercise?.equipment == .adjustableDumbbells && exercise?.usesSingleDumbbell == false
+    }
 
     private var header: some View {
         HStack(spacing: 10) {
@@ -42,10 +50,22 @@ struct WorkoutPopupView: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(exercise?.name ?? "Workout")
                     .font(.title2.weight(.semibold))
-                if let group = exercise?.muscleGroup.displayName {
-                    Text(group).font(.subheadline).foregroundStyle(.secondary)
+                if let exercise {
+                    Text("\(exercise.muscleGroup.displayName) · \(exercise.equipment.displayName)")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
                 }
             }
+        }
+    }
+
+    @ViewBuilder
+    private var warmupCue: some View {
+        if exercise?.equipment == .barbell {
+            Label("Do 1–2 light warm-up sets before your working sets.", systemImage: "exclamationmark.triangle.fill")
+                .font(.subheadline)
+                .foregroundStyle(.orange)
+                .fixedSize(horizontal: false, vertical: true)
         }
     }
 
@@ -70,9 +90,11 @@ struct WorkoutPopupView: View {
         .background(RoundedRectangle(cornerRadius: 10).fill(.quaternary.opacity(0.5)))
     }
 
+    private var eachSuffix: String { pairedDumbbells ? " each" : "" }
+
     private func targetLine(_ s: Suggestion) -> String {
         let weighted = (exercise?.equipment.isWeighted ?? false) && s.weight > 0
-        let w = weighted ? " @ \(ProgressionEngine.format(s.weight)) kg" : ""
+        let w = weighted ? " @ \(ProgressionEngine.format(s.weight)) kg\(eachSuffix)" : ""
         let perSide = exercise?.isUnilateral == true ? " per side" : ""
         return "Target: \(s.sets) × \(s.reps) reps\(perSide)\(w)"
     }
@@ -118,14 +140,33 @@ struct WorkoutPopupView: View {
 
     private var loggedSets: some View {
         let sets = coordinator.activeSession?.orderedSets ?? []
-        return VStack(alignment: .leading, spacing: 4) {
-            ForEach(Array(sets.enumerated()), id: \.offset) { index, set in
+        return VStack(alignment: .leading, spacing: 8) {
+            if !sets.isEmpty {
+                VStack(alignment: .leading, spacing: 4) {
+                    ForEach(Array(sets.enumerated()), id: \.offset) { index, set in
+                        HStack {
+                            Text("Set \(index + 1)")
+                                .foregroundStyle(.secondary)
+                            Spacer()
+                            Text(setDescription(set))
+                                .monospacedDigit()
+                        }
+                        .font(.callout)
+                    }
+                }
                 HStack {
-                    Text("Set \(index + 1)")
-                        .foregroundStyle(.secondary)
+                    Button {
+                        coordinator.repeatLastSet()
+                        restTimer.start(seconds: coordinator.settings.restSeconds)
+                    } label: {
+                        Label("Repeat last set", systemImage: "arrow.clockwise")
+                    }
                     Spacer()
-                    Text(setDescription(set))
-                        .monospacedDigit()
+                    Button(role: .destructive) {
+                        coordinator.removeLastSet()
+                    } label: {
+                        Label("Undo last", systemImage: "arrow.uturn.backward")
+                    }
                 }
                 .font(.callout)
             }
@@ -135,7 +176,7 @@ struct WorkoutPopupView: View {
     private func setDescription(_ set: WorkoutSet) -> String {
         let weighted = (exercise?.equipment.isWeighted ?? false) && set.weight > 0
         return weighted
-            ? "\(set.reps) reps @ \(ProgressionEngine.format(set.weight)) kg"
+            ? "\(set.reps) reps @ \(ProgressionEngine.format(set.weight)) kg\(eachSuffix)"
             : "\(set.reps) reps"
     }
 
@@ -213,28 +254,56 @@ struct WorkoutPopupView: View {
     }
 
     private var actions: some View {
-        HStack {
+        let noSets = coordinator.activeSession?.sets.isEmpty ?? true
+        return HStack {
             Button(role: .cancel) { coordinator.skipSession() } label: {
                 Text("Skip")
             }
+            if noSets {
+                Button("Swap") { coordinator.swapExercise() }
+            }
             Button("Snooze 15m") { coordinator.snooze(minutes: 15) }
             Spacer()
-            if let last = coordinator.activeSession?.orderedSets.last, last.reps > 0 {
-                Button("Undo set") { coordinator.removeLastSet() }
-            }
             Button {
                 coordinator.finishSession()
             } label: {
                 Text("Done")
             }
             .buttonStyle(.borderedProminent)
-            .disabled((coordinator.activeSession?.sets.isEmpty ?? true))
+            .disabled(noSets)
         }
     }
 
-    private func primeFromSuggestion() {
-        guard !didPrime, let s = suggestion else { return }
-        // Resuming a session with logged sets: continue from the last set's numbers.
+    @ViewBuilder
+    private var celebrationOverlay: some View {
+        if let message = coordinator.celebration {
+            ZStack {
+                Color.black.opacity(0.35).ignoresSafeArea()
+                VStack(spacing: 12) {
+                    Text("🎉").font(.system(size: 52))
+                    Text(message)
+                        .font(.title3.weight(.semibold))
+                        .multilineTextAlignment(.center)
+                    if let name = exercise?.name {
+                        Text(name).foregroundStyle(.secondary)
+                    }
+                    Button("Nice! 💪") { coordinator.dismissCelebration() }
+                        .buttonStyle(.borderedProminent)
+                        .keyboardShortcut(.defaultAction)
+                }
+                .padding(28)
+                .background(RoundedRectangle(cornerRadius: 16).fill(.regularMaterial))
+                .padding(30)
+            }
+        }
+    }
+
+    /// Primes the weight/reps entry from the suggestion (or the last logged set when
+    /// resuming). Re-runs when the exercise changes — e.g. after a Swap.
+    private func primeIfNeeded() {
+        let id = exercise?.persistentModelID
+        guard id != primedFor, let s = suggestion else { return }
+        primedFor = id
         if let last = coordinator.activeSession?.orderedSets.last {
             weight = last.weight
             reps = last.reps
@@ -245,6 +314,5 @@ struct WorkoutPopupView: View {
             weight = s.weight
             reps = s.reps
         }
-        didPrime = true
     }
 }

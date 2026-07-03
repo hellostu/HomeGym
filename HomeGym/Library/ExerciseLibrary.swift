@@ -11,6 +11,8 @@ enum ExerciseLibrary {
         let tip: String
         /// Worked one side at a time (target is "per side").
         var unilateral: Bool = false
+        /// Uses a single dumbbell (both hands, or one at a time) — so weight isn't "each".
+        var singleDumbbell: Bool = false
     }
 
     /// Keyed by exercise name so it can both seed new stores and backfill existing ones.
@@ -34,7 +36,7 @@ enum ExerciseLibrary {
             "Hold one dumbbell with both hands overhead, arms straight.",
             "Keeping your elbows pointing forward, lower the weight behind your head.",
             "Extend back up until your arms are straight, squeezing the triceps."
-        ], tip: "Keep your upper arms vertical and still; only the forearms move."),
+        ], tip: "Keep your upper arms vertical and still; only the forearms move.", singleDumbbell: true),
         "EZ-Bar Skullcrusher": Guidance(steps: [
             "Lie on the bench holding the EZ bar over your chest, arms straight.",
             "Bend at the elbows to lower the bar toward your forehead.",
@@ -79,7 +81,7 @@ enum ExerciseLibrary {
             "Hinge forward with a flat back, one hand and knee supported on the bench.",
             "Let the dumbbell hang, then pull it to your hip, driving the elbow back.",
             "Lower under control to a full stretch, then switch sides."
-        ], tip: "Lead with the elbow and squeeze the shoulder blade; don't twist the torso.", unilateral: true),
+        ], tip: "Lead with the elbow and squeeze the shoulder blade; don't twist the torso.", unilateral: true, singleDumbbell: true),
         "Barbell Row": Guidance(steps: [
             "Hinge at the hips with a flat back, bar hanging at arm's length.",
             "Pull the bar to your lower ribs / upper stomach, elbows back.",
@@ -89,12 +91,12 @@ enum ExerciseLibrary {
             "Lie on the bench holding one dumbbell over your chest with both hands.",
             "Keeping a slight elbow bend, lower the weight back behind your head.",
             "Pull it back over your chest, feeling the lats and chest work."
-        ], tip: "Move only at the shoulders; keep your hips down and core tight."),
+        ], tip: "Move only at the shoulders; keep your hips down and core tight.", singleDumbbell: true),
         "Goblet Squat": Guidance(steps: [
             "Hold a dumbbell vertically against your chest with both hands.",
             "Squat down, knees tracking over your toes, until thighs are about parallel.",
             "Drive through your heels to stand tall."
-        ], tip: "Keep your chest up and elbows inside your knees at the bottom."),
+        ], tip: "Keep your chest up and elbows inside your knees at the bottom.", singleDumbbell: true),
         "Barbell Squat": Guidance(steps: [
             "Bar on your upper back, feet shoulder-width, toes turned slightly out.",
             "Brace, then sit down and back, keeping knees tracking over your toes.",
@@ -119,7 +121,7 @@ enum ExerciseLibrary {
             "Lie on your back, knees bent, holding a dumbbell against your chest.",
             "Curl your shoulders off the floor, crunching your ribs toward your hips.",
             "Lower slowly under control."
-        ], tip: "Move through the abs, not the neck; exhale as you crunch up."),
+        ], tip: "Move through the abs, not the neck; exhale as you crunch up.", singleDumbbell: true),
         "Plank (sec)": Guidance(steps: [
             "Forearms under your shoulders, body in a straight line from head to heels.",
             "Brace your abs and glutes and hold for the target number of seconds.",
@@ -172,6 +174,7 @@ enum ExerciseLibrary {
                 exercise.instructions = g.steps
                 exercise.formTip = g.tip
                 exercise.isUnilateral = g.unilateral
+                exercise.usesSingleDumbbell = g.singleDumbbell
             }
         }
         return exercises
@@ -206,6 +209,7 @@ enum ExerciseLibrary {
             if exercise.instructions != g.steps { exercise.instructions = g.steps; changed = true }
             if exercise.formTip != g.tip { exercise.formTip = g.tip; changed = true }
             if exercise.isUnilateral != g.unilateral { exercise.isUnilateral = g.unilateral; changed = true }
+            if exercise.usesSingleDumbbell != g.singleDumbbell { exercise.usesSingleDumbbell = g.singleDumbbell; changed = true }
         }
         if changed { try? context.save() }
     }

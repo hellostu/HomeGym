@@ -15,6 +15,9 @@ final class AppCoordinator: ObservableObject {
     /// The session currently being logged in the popup, plus the suggestion shown.
     @Published var activeSession: SnackSession?
     @Published var currentSuggestion: Suggestion?
+    /// Set when a finished session beat a personal record — shown as a celebration
+    /// overlay in the popup until dismissed.
+    @Published var celebration: String?
 
     private var didBootstrap = false
 
@@ -115,9 +118,13 @@ final class AppCoordinator: ObservableObject {
 
     /// Picks the least-recently-trained enabled muscle group, then the least-recently
     /// performed exercise within it, and builds a progression suggestion.
-    func planWorkout() -> WorkoutPlan? {
+    func planWorkout(excluding excluded: Exercise? = nil) -> WorkoutPlan? {
         let enabledGroups = settings.enabledMuscleGroups
-        let candidates = allExercises().filter { $0.isEnabled && enabledGroups.contains($0.muscleGroup) }
+        var candidates = allExercises().filter { $0.isEnabled && enabledGroups.contains($0.muscleGroup) }
+        if let excluded {
+            let others = candidates.filter { $0.persistentModelID != excluded.persistentModelID }
+            if !others.isEmpty { candidates = others }   // don't empty the pool if it's the only one
+        }
         guard !candidates.isEmpty else { return nil }
 
         // Group -> most recent training date (nil = never trained, sorts first).
@@ -157,12 +164,63 @@ final class AppCoordinator: ObservableObject {
         try? context.save()
     }
 
+    /// Log another set identical to the last one — one-tap "same again".
+    func repeatLastSet() {
+        guard let last = activeSession?.orderedSets.last else { return }
+        logSet(weight: last.weight, reps: last.reps)
+    }
+
+    /// Replace the current (not-yet-logged) exercise with a freshly planned, different one.
+    func swapExercise() {
+        guard let session = activeSession, session.sets.isEmpty else { return }
+        guard let plan = planWorkout(excluding: session.exercise) else { return }
+        session.exercise = plan.exercise
+        session.targetSets = plan.suggestion.sets
+        session.targetReps = plan.suggestion.reps
+        session.targetWeight = plan.suggestion.weight
+        try? context.save()
+        currentSuggestion = plan.suggestion
+    }
+
     func finishSession() {
         guard let session = activeSession else { return }
-        session.completed = !session.sets.isEmpty
+        let hadSets = !session.sets.isEmpty
+        session.completed = hadSets
         session.exercise?.lastPerformed = .now
         try? context.save()
+
+        if hadSets, let exercise = session.exercise {
+            let prior = completedSessions(for: exercise).filter { $0 !== session }
+            if let pr = PRDetector.record(for: session, previous: prior, weighted: exercise.equipment.isWeighted) {
+                celebration = celebrationMessage(pr, exercise: exercise)
+                return   // keep the window up to show the celebration; dismiss then closes
+            }
+        }
         endActive()
+    }
+
+    func dismissCelebration() {
+        celebration = nil
+        endActive()
+    }
+
+    private func celebrationMessage(_ pr: PRDetector.Record, exercise: Exercise) -> String {
+        switch pr.kind {
+        case .weight:
+            return "New PR! \(ProgressionEngine.format(pr.weight)) kg × \(pr.reps)"
+        case .reps:
+            return exercise.equipment.isWeighted
+                ? "New PR! \(pr.reps) reps @ \(ProgressionEngine.format(pr.weight)) kg"
+                : "New PR! \(pr.reps) reps"
+        }
+    }
+
+    /// Completed sessions since the start of the current week — shown in the menu.
+    func completedThisWeekCount() -> Int {
+        let calendar = Calendar.current
+        guard let weekStart = calendar.dateInterval(of: .weekOfYear, for: .now)?.start else { return 0 }
+        let all = (try? context.fetch(FetchDescriptor<SnackSession>())) ?? []
+        return all.filter { $0.completed && $0.date >= weekStart }.count
     }
 
     func skipSession() {
@@ -186,6 +244,7 @@ final class AppCoordinator: ObservableObject {
         windowController.close()
         activeSession = nil
         currentSuggestion = nil
+        celebration = nil
         if reschedule { reloadSchedule() }
     }
 

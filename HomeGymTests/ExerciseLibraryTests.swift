@@ -32,4 +32,15 @@ final class ExerciseLibraryTests: XCTestCase {
         XCTAssertEqual(byName["Goblet Squat"]?.isUnilateral, false)
         XCTAssertEqual(byName["Barbell Bench Press"]?.isUnilateral, false)
     }
+
+    func testSingleDumbbellExercisesAreFlagged() {
+        let byName = Dictionary(uniqueKeysWithValues: ExerciseLibrary.seedExercises().map { ($0.name, $0) })
+        // One dumbbell (both hands or one at a time) → weight isn't "each".
+        XCTAssertEqual(byName["Goblet Squat"]?.usesSingleDumbbell, true)
+        XCTAssertEqual(byName["DB Pullover"]?.usesSingleDumbbell, true)
+        XCTAssertEqual(byName["DB Row"]?.usesSingleDumbbell, true)
+        // A dumbbell in each hand → "each" applies.
+        XCTAssertEqual(byName["Dumbbell Curl"]?.usesSingleDumbbell, false)
+        XCTAssertEqual(byName["DB Shoulder Press"]?.usesSingleDumbbell, false)
+    }
 }

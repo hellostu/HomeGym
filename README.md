@@ -24,6 +24,11 @@ your desk for a full session.
   popup, plus a **Watch demo** button that opens a video demonstration in your browser.
 - **Rest timer between sets**: logging a set auto-starts a countdown (default 90s,
   configurable) with +15s / Skip controls and a chime when rest is up.
+- **Swap / repeat / resume**: swap a prompt for a different exercise, one-tap "repeat
+  last set", and resume an unfinished workout where you left off.
+- **PR celebration**: beating a previous best (weight or reps) pops a celebration.
+- **Weekly consistency**: the menu shows how many workouts you've done this week.
+- **Launch at login**: optional, so it's always there without opening it.
 - **History & progress**: per-exercise session log and a top-weight trend chart.
 
 ## Running it
