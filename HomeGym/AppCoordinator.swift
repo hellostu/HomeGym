@@ -59,7 +59,11 @@ final class AppCoordinator: ObservableObject {
         try? context.save()
     }
 
+    /// Whether today's snack-workout goal is already met.
+    var dailyGoalMet: Bool { completedTodayCount() >= dailyTarget }
+
     /// Re-reads settings and arms the next prompt. Call after any settings change.
+    /// Once today's goal is hit, prompting stops and resumes tomorrow.
     func reloadSchedule() {
         let s = settings
         scheduler.params = SchedulingParams(
@@ -69,12 +73,19 @@ final class AppCoordinator: ObservableObject {
             minGapMinutes: s.minGapMinutes,
             weekdaysOnly: s.weekdaysOnly
         )
-        scheduler.reschedule(paused: isPausedNow)
+        // If the day's goal is done, skip the rest of today and arm tomorrow.
+        let from = dailyGoalMet ? Calendar.current.startOfDay(for: Date().addingTimeInterval(86_400)) : Date()
+        scheduler.reschedule(now: from, paused: isPausedNow)
     }
 
     // MARK: - Firing
 
     private func handleScheduledFire() {
+        // Goal already met (e.g. via manual workouts)? Don't prompt — resume tomorrow.
+        if dailyGoalMet {
+            reloadSchedule()
+            return
+        }
         // If a meeting started since scheduling, defer to just after it.
         if settings.calendarBusyIsBlocking, let busyEnd = calendar.busyEndDate(at: .now) {
             scheduler.reschedule(now: busyEnd.addingTimeInterval(60))
