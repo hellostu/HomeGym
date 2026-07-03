@@ -1,18 +1,29 @@
 import SwiftUI
 import Foundation
 
-/// Maps a set count to a heat colour on a cold→hot scale: grey when untrained, then
-/// blue (least) → purple → red (most), relative to the most-trained group this week.
-/// Deliberately avoids green so it reads as a temperature ramp.
+/// Maps a set count to a cold→hot colour: grey when untrained, then a diverging
+/// blue → pale → red ramp. Scaled to a weekly per-muscle target (not to the top
+/// group), so the colour means "how much have I trained this this week". The pale
+/// midpoint avoids the muddy magenta a vivid blue→red would produce.
 enum HeatColor {
     static let untrained = Color.gray.opacity(0.18)
+    /// Sets per muscle group that count as a fully "hot" week.
+    static let weeklyTargetSets = 8
 
-    static func color(sets: Int, max: Int) -> Color {
+    static func color(sets: Int, target: Int = weeklyTargetSets) -> Color {
         guard sets > 0 else { return untrained }
-        let intensity = max > 0 ? Double(sets) / Double(max) : 0
-        // Hue 0.667 (blue) → 1.0 (red), passing through purple/magenta — never green.
-        let hue = 0.667 + 0.333 * intensity
-        return Color(hue: min(hue, 1.0), saturation: 0.85, brightness: 0.92)
+        let t = min(1.0, Double(sets) / Double(max(1, target)))
+        return coolToHot(t)
+    }
+
+    private static func coolToHot(_ t: Double) -> Color {
+        let cold = (r: 0.20, g: 0.48, b: 0.96)   // blue
+        let mid  = (r: 0.88, g: 0.88, b: 0.92)   // pale
+        let hot  = (r: 0.92, g: 0.16, b: 0.20)   // red
+        func lerp(_ a: (r: Double, g: Double, b: Double), _ b: (r: Double, g: Double, b: Double), _ u: Double) -> Color {
+            Color(red: a.r + (b.r - a.r) * u, green: a.g + (b.g - a.g) * u, blue: a.b + (b.b - a.b) * u)
+        }
+        return t < 0.5 ? lerp(cold, mid, t / 0.5) : lerp(mid, hot, (t - 0.5) / 0.5)
     }
 }
 
@@ -41,7 +52,7 @@ struct BodyHeatMap: View {
     }
 
     private func color(for group: MuscleGroup) -> Color {
-        HeatColor.color(sets: stats.sets(for: group), max: stats.maxGroupSets)
+        HeatColor.color(sets: stats.sets(for: group))
     }
 
     // MARK: - Drawing
@@ -159,10 +170,9 @@ struct HeatLegend: View {
             Text("Less").font(.caption2).foregroundStyle(.secondary)
             LinearGradient(
                 colors: [
-                    HeatColor.color(sets: 1, max: 4),
-                    HeatColor.color(sets: 2, max: 4),
-                    HeatColor.color(sets: 3, max: 4),
-                    HeatColor.color(sets: 4, max: 4)
+                    HeatColor.color(sets: 1),
+                    HeatColor.color(sets: 4),
+                    HeatColor.color(sets: 8)
                 ],
                 startPoint: .leading, endPoint: .trailing
             )
