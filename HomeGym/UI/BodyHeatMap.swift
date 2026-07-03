@@ -58,62 +58,36 @@ struct BodyHeatMap: View {
     // MARK: - Drawing
 
     private func draw(front: Bool, into context: inout GraphicsContext) {
-        drawBaseBody(&context)
+        // One continuous silhouette, filled light and outlined.
+        let body = bodyOutline()
+        context.fill(body, with: .color(base))
+        context.stroke(body, with: .color(outline), lineWidth: 1.4)
+
+        // Muscle regions, clipped to the body so nothing spills past the outline.
+        var ctx = context
+        ctx.clip(to: body)
 
         // Deltoids.
-        muscle(circle(CGPoint(x: 44, y: 74), 14), color(for: .shoulders), &context)
-        muscle(circle(CGPoint(x: 106, y: 74), 14), color(for: .shoulders), &context)
+        muscle(ellipse(CGPoint(x: 104, y: 80), 12, 13), color(for: .shoulders), &ctx)
+        muscle(ellipse(CGPoint(x: 46, y: 80), 12, 13), color(for: .shoulders), &ctx)
 
-        // Upper-arm muscle patch: biceps on the front, triceps on the back.
+        // Upper arm: biceps on the front, triceps on the back.
         let armGroup: MuscleGroup = front ? .biceps : .triceps
-        muscle(ellipse(CGPoint(x: 36, y: 112), 9, 26), color(for: armGroup), &context)
-        muscle(ellipse(CGPoint(x: 114, y: 112), 9, 26), color(for: armGroup), &context)
+        muscle(ellipse(CGPoint(x: 101, y: 116), 8, 30), color(for: armGroup), &ctx)
+        muscle(ellipse(CGPoint(x: 49, y: 116), 8, 30), color(for: armGroup), &ctx)
 
-        // Torso muscles, clipped to the torso outline so they never spill past the body.
-        var torsoClip = context
-        torsoClip.clip(to: torsoPath())
+        // Torso.
         if front {
-            muscle(ellipse(CGPoint(x: 64, y: 96), 14, 12), color(for: .chest), &torsoClip)
-            muscle(ellipse(CGPoint(x: 86, y: 96), 14, 12), color(for: .chest), &torsoClip)
-            muscle(roundedRect(center: CGPoint(x: 75, y: 136), width: 24, height: 48, radius: 8), color(for: .core), &torsoClip)
+            muscle(ellipse(CGPoint(x: 83, y: 100), 11, 10), color(for: .chest), &ctx)
+            muscle(ellipse(CGPoint(x: 67, y: 100), 11, 10), color(for: .chest), &ctx)
+            muscle(roundedRect(center: CGPoint(x: 75, y: 134), width: 20, height: 46, radius: 7), color(for: .core), &ctx)
         } else {
-            muscle(roundedRect(center: CGPoint(x: 75, y: 112), width: 52, height: 92, radius: 16), color(for: .back), &torsoClip)
+            muscle(roundedRect(center: CGPoint(x: 75, y: 112), width: 44, height: 84, radius: 16), color(for: .back), &ctx)
         }
 
-        // Thighs (quads on the front, hamstrings on the back — both are the "legs" group).
-        muscle(ellipse(CGPoint(x: 63, y: 208), 12, 34), color(for: .legs), &context)
-        muscle(ellipse(CGPoint(x: 87, y: 208), 12, 34), color(for: .legs), &context)
-    }
-
-    /// The light-grey body: head, neck, tapered torso, arms and legs.
-    private func drawBaseBody(_ context: inout GraphicsContext) {
-        baseFill(torsoPath(), &context)
-
-        for side in [CGFloat(-1), CGFloat(1)] {
-            let shoulderX = 75 + side * 31
-            let elbowX = 75 + side * 47
-            let wristX = 75 + side * 53
-            baseFill(taper(CGPoint(x: shoulderX, y: 80), CGPoint(x: elbowX, y: 150), 23, 16), &context)
-            baseFill(circle(CGPoint(x: elbowX, y: 150), 8), &context)
-            baseFill(taper(CGPoint(x: elbowX, y: 152), CGPoint(x: wristX, y: 214), 15, 11), &context)
-        }
-
-        for hipX in [CGFloat(64), CGFloat(86)] {
-            let kneeX = hipX + (hipX < 75 ? -2 : 2)
-            baseFill(taper(CGPoint(x: hipX, y: 178), CGPoint(x: kneeX, y: 250), 30, 20), &context)
-            baseFill(circle(CGPoint(x: kneeX, y: 250), 10), &context)
-            baseFill(taper(CGPoint(x: kneeX, y: 252), CGPoint(x: kneeX, y: 316), 19, 13), &context)
-        }
-
-        baseFill(circle(CGPoint(x: 44, y: 74), 15), &context)
-        baseFill(circle(CGPoint(x: 106, y: 74), 15), &context)
-        baseFill(roundedRect(center: CGPoint(x: 75, y: 52), width: 18, height: 20, radius: 5), &context)
-        baseFill(ellipse(CGPoint(x: 75, y: 26), 17, 20), &context)
-    }
-
-    private func baseFill(_ path: Path, _ context: inout GraphicsContext) {
-        context.fill(path, with: .color(base))
-        context.stroke(path, with: .color(outline), lineWidth: 1.2)
+        // Thighs (quads front / hamstrings back — both the "legs" group).
+        muscle(ellipse(CGPoint(x: 85, y: 212), 11, 32), color(for: .legs), &ctx)
+        muscle(ellipse(CGPoint(x: 65, y: 212), 11, 32), color(for: .legs), &ctx)
     }
 
     private func muscle(_ path: Path, _ fill: Color, _ context: inout GraphicsContext) {
@@ -123,34 +97,42 @@ struct BodyHeatMap: View {
 
     // MARK: - Shape builders
 
-    private func torsoPath() -> Path {
-        var p = Path()
-        p.move(to: CGPoint(x: 46, y: 68))
-        p.addLine(to: CGPoint(x: 104, y: 68))
-        p.addQuadCurve(to: CGPoint(x: 92, y: 150), control: CGPoint(x: 104, y: 120))
-        p.addLine(to: CGPoint(x: 98, y: 178))
-        p.addLine(to: CGPoint(x: 52, y: 178))
-        p.addLine(to: CGPoint(x: 58, y: 150))
-        p.addQuadCurve(to: CGPoint(x: 46, y: 68), control: CGPoint(x: 46, y: 120))
-        p.closeSubpath()
-        return p
-    }
+    /// A continuous, symmetric humanoid outline. The right half is defined top-to-crotch;
+    /// the left half is the same points mirrored about the centre, traversed in reverse.
+    private func bodyOutline() -> Path {
+        let pts: [CGPoint] = [
+            CGPoint(x: 75, y: 6),    CGPoint(x: 91, y: 22),   CGPoint(x: 84, y: 42),
+            CGPoint(x: 80, y: 50),   CGPoint(x: 110, y: 68),  CGPoint(x: 107, y: 150),
+            CGPoint(x: 101, y: 210), CGPoint(x: 104, y: 225), CGPoint(x: 95, y: 213),
+            CGPoint(x: 98, y: 150),  CGPoint(x: 92, y: 84),   CGPoint(x: 88, y: 148),
+            CGPoint(x: 96, y: 182),  CGPoint(x: 90, y: 250),  CGPoint(x: 83, y: 316),
+            CGPoint(x: 97, y: 327),  CGPoint(x: 80, y: 321),  CGPoint(x: 82, y: 252),
+            CGPoint(x: 75, y: 201)
+        ]
+        let ctrls: [CGPoint?] = [
+            nil, CGPoint(x: 87, y: 6), CGPoint(x: 92, y: 38),
+            nil, CGPoint(x: 92, y: 54), CGPoint(x: 117, y: 104),
+            nil, CGPoint(x: 105, y: 219), CGPoint(x: 96, y: 225),
+            nil, CGPoint(x: 97, y: 112), CGPoint(x: 94, y: 116),
+            CGPoint(x: 89, y: 168), CGPoint(x: 99, y: 212), CGPoint(x: 87, y: 286),
+            CGPoint(x: 91, y: 327), CGPoint(x: 87, y: 327), CGPoint(x: 80, y: 300),
+            CGPoint(x: 80, y: 238)
+        ]
+        func mirror(_ p: CGPoint) -> CGPoint { CGPoint(x: 150 - p.x, y: p.y) }
 
-    private func taper(_ a: CGPoint, _ b: CGPoint, _ widthA: CGFloat, _ widthB: CGFloat) -> Path {
-        let dx = b.x - a.x, dy = b.y - a.y
-        let len = max(0.0001, hypot(dx, dy))
-        let nx = -dy / len, ny = dx / len
-        var p = Path()
-        p.move(to: CGPoint(x: a.x + nx * widthA / 2, y: a.y + ny * widthA / 2))
-        p.addLine(to: CGPoint(x: b.x + nx * widthB / 2, y: b.y + ny * widthB / 2))
-        p.addLine(to: CGPoint(x: b.x - nx * widthB / 2, y: b.y - ny * widthB / 2))
-        p.addLine(to: CGPoint(x: a.x - nx * widthA / 2, y: a.y - ny * widthA / 2))
-        p.closeSubpath()
-        return p
-    }
-
-    private func circle(_ center: CGPoint, _ r: CGFloat) -> Path {
-        Path(ellipseIn: CGRect(x: center.x - r, y: center.y - r, width: r * 2, height: r * 2))
+        var path = Path()
+        path.move(to: pts[0])
+        for i in 1..<pts.count {
+            if let control = ctrls[i] { path.addQuadCurve(to: pts[i], control: control) }
+            else { path.addLine(to: pts[i]) }
+        }
+        for i in stride(from: pts.count - 1, through: 1, by: -1) {
+            let dest = mirror(pts[i - 1])
+            if let control = ctrls[i] { path.addQuadCurve(to: dest, control: mirror(control)) }
+            else { path.addLine(to: dest) }
+        }
+        path.closeSubpath()
+        return path
     }
 
     private func ellipse(_ center: CGPoint, _ rx: CGFloat, _ ry: CGFloat) -> Path {
