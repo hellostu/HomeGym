@@ -142,11 +142,15 @@ final class AppCoordinator: ObservableObject {
         }
         guard !candidates.isEmpty else { return nil }
 
-        // Group -> most recent training date (nil = never trained, sorts first).
+        // Pick the muscle group we're most behind on this week (fewest sets), so the
+        // week self-balances; tie-break by least-recently-trained.
+        let allSessions = (try? context.fetch(FetchDescriptor<SnackSession>())) ?? []
+        let week = StatsCalculator.weekly(completed: allSessions, now: .now)
         let byGroup = Dictionary(grouping: candidates, by: \.muscleGroup)
-        let group = byGroup.min { lhs, rhs in
-            lastTrained(lhs.value) < lastTrained(rhs.value)
-        }?.key
+        let selection = byGroup.map { group, exercises in
+            BalanceSelector.Candidate(group: group, setsThisWeek: week.sets(for: group), lastTrained: lastTrained(exercises))
+        }
+        let group = BalanceSelector.mostBehind(selection)
 
         let pool = group.map { g in candidates.filter { $0.muscleGroup == g } } ?? candidates
         guard let exercise = pool.min(by: { ($0.lastPerformed ?? .distantPast) < ($1.lastPerformed ?? .distantPast) }) else {
