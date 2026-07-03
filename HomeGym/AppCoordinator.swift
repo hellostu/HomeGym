@@ -148,7 +148,12 @@ final class AppCoordinator: ObservableObject {
         let week = StatsCalculator.weekly(completed: allSessions, now: .now)
         let byGroup = Dictionary(grouping: candidates, by: \.muscleGroup)
         let selection = byGroup.map { group, exercises in
-            BalanceSelector.Candidate(group: group, setsThisWeek: week.sets(for: group), lastTrained: lastTrained(exercises))
+            BalanceSelector.Candidate(
+                group: group,
+                setsThisWeek: week.sets(for: group),
+                weeklyTarget: group.weeklySetTarget,
+                lastTrained: lastTrained(exercises)
+            )
         }
         let group = BalanceSelector.mostBehind(selection)
 

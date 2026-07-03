@@ -86,11 +86,14 @@ private struct OverviewTab: View {
     private func perGroupBreakdown(_ stats: WeeklyStats) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             Text("Sets by muscle group").font(.headline)
+            Text("Target sets per week are weighted — bigger muscles need more.")
+                .font(.caption).foregroundStyle(.secondary)
             ForEach(MuscleGroup.allCases) { group in
                 HStack {
                     Text(group.displayName)
                     Spacer()
-                    Text("\(stats.sets(for: group))").monospacedDigit().foregroundStyle(.secondary)
+                    Text("\(stats.sets(for: group)) / \(group.weeklySetTarget)")
+                        .monospacedDigit().foregroundStyle(.secondary)
                 }
                 .font(.callout)
             }

@@ -52,7 +52,7 @@ struct BodyHeatMap: View {
     }
 
     private func color(for group: MuscleGroup) -> Color {
-        HeatColor.color(sets: stats.sets(for: group))
+        HeatColor.color(sets: stats.sets(for: group), target: group.weeklySetTarget)
     }
 
     // MARK: - Drawing

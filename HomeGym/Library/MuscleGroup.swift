@@ -26,6 +26,18 @@ enum MuscleGroup: String, CaseIterable, Codable, Identifiable {
         }
     }
 
+    /// Target sets per week for a group to count as fully trained. Bigger muscles need
+    /// more volume, so legs/back need more sets to "glow" than arms — this weights both
+    /// the heat-map colour and how often the group is prioritised.
+    var weeklySetTarget: Int {
+        switch self {
+        case .legs, .back: return 10
+        case .chest: return 9
+        case .glutes, .shoulders: return 8
+        case .biceps, .triceps, .core: return 6
+        }
+    }
+
     /// SF Symbol used in menus and the popup.
     var symbolName: String {
         switch self {
