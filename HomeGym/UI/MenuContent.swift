@@ -59,7 +59,7 @@ struct MenuContent: View {
         }
         .buttonStyle(.plain)
         .padding(12)
-        .frame(width: 240, alignment: .leading)
+        .frame(width: 260, alignment: .leading)
     }
 
     private var todayProgress: some View {
@@ -95,7 +95,7 @@ struct MenuContent: View {
             Label("Paused until tomorrow", systemImage: "moon.zzz")
                 .foregroundStyle(.secondary)
         } else if coordinator.dailyGoalMet {
-            Label("Goal reached — done for today 🎉", systemImage: "checkmark.seal.fill")
+            Label("Done for today 🎉", systemImage: "checkmark.seal.fill")
                 .foregroundStyle(.green)
         } else if let next = coordinator.scheduler.nextFireDate {
             Label("Next: \(next.formatted(date: .omitted, time: .shortened))", systemImage: "clock")
