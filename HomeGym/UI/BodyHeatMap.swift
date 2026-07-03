@@ -68,29 +68,29 @@ struct BodyHeatMap: View {
         ctx.clip(to: body)
 
         // Deltoids.
-        muscle(ellipse(CGPoint(x: 104, y: 84), 13, 14), color(for: .shoulders), &ctx)
-        muscle(ellipse(CGPoint(x: 46, y: 84), 13, 14), color(for: .shoulders), &ctx)
+        muscle(ellipse(CGPoint(x: 108, y: 86), 13, 14), color(for: .shoulders), &ctx)
+        muscle(ellipse(CGPoint(x: 42, y: 86), 13, 14), color(for: .shoulders), &ctx)
 
         // Upper arm: biceps on the front, triceps on the back.
         let armGroup: MuscleGroup = front ? .biceps : .triceps
-        muscle(ellipse(CGPoint(x: 104, y: 118), 10, 30), color(for: armGroup), &ctx)
-        muscle(ellipse(CGPoint(x: 46, y: 118), 10, 30), color(for: armGroup), &ctx)
+        muscle(ellipse(CGPoint(x: 110, y: 120), 10, 30), color(for: armGroup), &ctx)
+        muscle(ellipse(CGPoint(x: 40, y: 120), 10, 30), color(for: armGroup), &ctx)
 
         // Torso.
         if front {
-            muscle(ellipse(CGPoint(x: 82, y: 102), 11, 11), color(for: .chest), &ctx)
-            muscle(ellipse(CGPoint(x: 68, y: 102), 11, 11), color(for: .chest), &ctx)
-            muscle(roundedRect(center: CGPoint(x: 75, y: 138), width: 22, height: 48, radius: 8), color(for: .core), &ctx)
+            muscle(ellipse(CGPoint(x: 84, y: 104), 12, 11), color(for: .chest), &ctx)
+            muscle(ellipse(CGPoint(x: 66, y: 104), 12, 11), color(for: .chest), &ctx)
+            muscle(roundedRect(center: CGPoint(x: 75, y: 140), width: 24, height: 48, radius: 8), color(for: .core), &ctx)
         } else {
-            muscle(roundedRect(center: CGPoint(x: 75, y: 116), width: 44, height: 88, radius: 16), color(for: .back), &ctx)
+            muscle(roundedRect(center: CGPoint(x: 75, y: 118), width: 48, height: 90, radius: 16), color(for: .back), &ctx)
             // Glutes sit at the hips on the back view only.
-            muscle(ellipse(CGPoint(x: 83, y: 190), 11, 12), color(for: .glutes), &ctx)
-            muscle(ellipse(CGPoint(x: 67, y: 190), 11, 12), color(for: .glutes), &ctx)
+            muscle(ellipse(CGPoint(x: 84, y: 188), 11, 12), color(for: .glutes), &ctx)
+            muscle(ellipse(CGPoint(x: 66, y: 188), 11, 12), color(for: .glutes), &ctx)
         }
 
         // Thighs (quads front / hamstrings back — both the "legs" group).
-        muscle(ellipse(CGPoint(x: 86, y: 214), 12, 33), color(for: .legs), &ctx)
-        muscle(ellipse(CGPoint(x: 64, y: 214), 12, 33), color(for: .legs), &ctx)
+        muscle(ellipse(CGPoint(x: 88, y: 216), 12, 34), color(for: .legs), &ctx)
+        muscle(ellipse(CGPoint(x: 62, y: 216), 12, 34), color(for: .legs), &ctx)
     }
 
     private func muscle(_ path: Path, _ fill: Color, _ context: inout GraphicsContext) {
@@ -104,22 +104,22 @@ struct BodyHeatMap: View {
     /// the left half is the same points mirrored about the centre, traversed in reverse.
     private func bodyOutline() -> Path {
         let pts: [CGPoint] = [
-            CGPoint(x: 75, y: 6),    CGPoint(x: 94, y: 27),   CGPoint(x: 83, y: 49),
-            CGPoint(x: 80, y: 56),   CGPoint(x: 113, y: 78),  CGPoint(x: 114, y: 150),
-            CGPoint(x: 108, y: 198), CGPoint(x: 109, y: 212), CGPoint(x: 97, y: 200),
-            CGPoint(x: 96, y: 150),  CGPoint(x: 90, y: 88),   CGPoint(x: 85, y: 150),
-            CGPoint(x: 99, y: 188),  CGPoint(x: 93, y: 256),  CGPoint(x: 86, y: 320),
-            CGPoint(x: 98, y: 329),  CGPoint(x: 78, y: 324),  CGPoint(x: 81, y: 258),
-            CGPoint(x: 75, y: 202)
+            CGPoint(x: 75, y: 6),    CGPoint(x: 95, y: 27),   CGPoint(x: 84, y: 49),
+            CGPoint(x: 81, y: 57),   CGPoint(x: 117, y: 80),  CGPoint(x: 119, y: 150),
+            CGPoint(x: 113, y: 200), CGPoint(x: 114, y: 214), CGPoint(x: 103, y: 202),
+            CGPoint(x: 101, y: 150), CGPoint(x: 97, y: 90),   CGPoint(x: 90, y: 150),
+            CGPoint(x: 102, y: 190), CGPoint(x: 96, y: 258),  CGPoint(x: 88, y: 322),
+            CGPoint(x: 100, y: 331), CGPoint(x: 79, y: 326),  CGPoint(x: 82, y: 260),
+            CGPoint(x: 75, y: 204)
         ]
         let ctrls: [CGPoint?] = [
-            nil, CGPoint(x: 89, y: 7), CGPoint(x: 94, y: 44),
-            nil, CGPoint(x: 93, y: 60), CGPoint(x: 120, y: 110),
-            nil, CGPoint(x: 110, y: 206), CGPoint(x: 98, y: 212),
-            nil, CGPoint(x: 95, y: 114), CGPoint(x: 91, y: 118),
-            CGPoint(x: 87, y: 172), CGPoint(x: 102, y: 214), CGPoint(x: 90, y: 290),
-            CGPoint(x: 93, y: 329), CGPoint(x: 86, y: 329), CGPoint(x: 79, y: 300),
-            CGPoint(x: 80, y: 242)
+            nil, CGPoint(x: 90, y: 7), CGPoint(x: 95, y: 44),
+            nil, CGPoint(x: 96, y: 62), CGPoint(x: 125, y: 112),
+            nil, CGPoint(x: 115, y: 208), CGPoint(x: 104, y: 214),
+            nil, CGPoint(x: 102, y: 116), CGPoint(x: 96, y: 120),
+            CGPoint(x: 90, y: 174), CGPoint(x: 105, y: 216), CGPoint(x: 92, y: 292),
+            CGPoint(x: 95, y: 331), CGPoint(x: 87, y: 331), CGPoint(x: 80, y: 302),
+            CGPoint(x: 80, y: 244)
         ]
         func mirror(_ p: CGPoint) -> CGPoint { CGPoint(x: 150 - p.x, y: p.y) }
 
