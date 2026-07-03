@@ -57,6 +57,11 @@ enum ExerciseLibrary {
             "Raise the weights out to the sides up to shoulder height.",
             "Lower slowly, leading with your elbows rather than your hands."
         ], tip: "Keep it light and controlled — imagine pouring water at the top."),
+        "DB Rear Delt Fly": Guidance(steps: [
+            "Hinge forward at the hips with a flat back, a light dumbbell in each hand hanging down.",
+            "With a slight bend in the elbows, raise the weights out to the sides, squeezing the rear delts.",
+            "Lower slowly under control."
+        ], tip: "Keep it light and lead with the elbows — think 'pour out to the sides', don't swing."),
         "Barbell Overhead Press": Guidance(steps: [
             "Hold the bar at shoulder height, hands just outside the shoulders, elbows under.",
             "Brace, then press the bar overhead, moving your head slightly back then through.",
@@ -67,6 +72,11 @@ enum ExerciseLibrary {
             "Press the weights up until your arms are straight and the dumbbells nearly touch.",
             "Lower under control until you feel a stretch across the chest."
         ], tip: "Keep your shoulder blades pinched back and feet flat on the floor."),
+        "Incline DB Press": Guidance(steps: [
+            "Set the bench to a low incline (~30°) and sit back with a dumbbell in each hand at shoulder level.",
+            "Press the weights up and slightly together until your arms are straight.",
+            "Lower under control until you feel a stretch across the upper chest."
+        ], tip: "A ~30° incline targets the upper chest — too upright and it turns into a shoulder press."),
         "Barbell Bench Press": Guidance(steps: [
             "Lie back, grip the bar slightly wider than your shoulders, unrack over your chest.",
             "Lower the bar to your mid-chest, elbows about 45° from your body.",
@@ -107,6 +117,16 @@ enum ExerciseLibrary {
             "Step forward and lower until both knees are about 90°.",
             "Push through the front heel to step straight into the next lunge."
         ], tip: "Keep your torso upright; don't let the front knee cave inward.", unilateral: true),
+        "Bulgarian Split Squat": Guidance(steps: [
+            "Stand a stride in front of the bench, rest the top of one foot behind you on it, a dumbbell in each hand.",
+            "Lower straight down until your front thigh is about parallel, front knee tracking over the toes.",
+            "Drive through the front heel to stand; finish all reps, then switch legs."
+        ], tip: "Keep your torso tall and your weight on the front leg — the back leg is just for balance.", unilateral: true),
+        "Standing Calf Raise": Guidance(steps: [
+            "Stand tall with a dumbbell in each hand, balls of your feet on a step or the floor.",
+            "Rise up onto your toes as high as you can, squeezing the calves.",
+            "Lower slowly into a full stretch, then repeat."
+        ], tip: "Full range with a pause at the top; calves respond best to higher reps (12–20)."),
         "DB Romanian Deadlift": Guidance(steps: [
             "Hold dumbbells in front of your thighs, knees softly bent.",
             "Hinge at the hips, pushing them back, lowering the weights along your legs.",
@@ -156,10 +176,12 @@ enum ExerciseLibrary {
             // Shoulders
             Exercise(name: "DB Shoulder Press", muscleGroup: .shoulders, equipment: .adjustableDumbbells, startingWeight: 10),
             Exercise(name: "DB Lateral Raise", muscleGroup: .shoulders, equipment: .adjustableDumbbells, repRangeLower: 10, repRangeUpper: 15, startingWeight: 6),
+            Exercise(name: "DB Rear Delt Fly", muscleGroup: .shoulders, equipment: .adjustableDumbbells, repRangeLower: 12, repRangeUpper: 20, startingWeight: 6),
             Exercise(name: "Barbell Overhead Press", muscleGroup: .shoulders, equipment: .barbell, startingWeight: 25),
 
             // Chest
             Exercise(name: "DB Bench Press", muscleGroup: .chest, equipment: .adjustableDumbbells, startingWeight: 14),
+            Exercise(name: "Incline DB Press", muscleGroup: .chest, equipment: .adjustableDumbbells, startingWeight: 12),
             Exercise(name: "Barbell Bench Press", muscleGroup: .chest, equipment: .barbell, startingWeight: 30),
             Exercise(name: "Push-Up", muscleGroup: .chest, equipment: .bodyweight, repRangeLower: 10, repRangeUpper: 20, startingWeight: 0),
 
@@ -168,10 +190,12 @@ enum ExerciseLibrary {
             Exercise(name: "Barbell Row", muscleGroup: .back, equipment: .barbell, startingWeight: 30),
             Exercise(name: "DB Pullover", muscleGroup: .back, equipment: .adjustableDumbbells, startingWeight: 12),
 
-            // Legs (quad-dominant)
+            // Legs (quad-dominant + calves)
             Exercise(name: "Goblet Squat", muscleGroup: .legs, equipment: .adjustableDumbbells, startingWeight: 16),
             Exercise(name: "Barbell Squat", muscleGroup: .legs, equipment: .barbell, startingWeight: 40),
             Exercise(name: "DB Walking Lunge", muscleGroup: .legs, equipment: .adjustableDumbbells, startingWeight: 10),
+            Exercise(name: "Bulgarian Split Squat", muscleGroup: .legs, equipment: .adjustableDumbbells, startingWeight: 10),
+            Exercise(name: "Standing Calf Raise", muscleGroup: .legs, equipment: .adjustableDumbbells, repRangeLower: 12, repRangeUpper: 20, startingWeight: 16),
 
             // Glutes (hip-dominant)
             Exercise(name: "DB Romanian Deadlift", muscleGroup: .glutes, equipment: .adjustableDumbbells, startingWeight: 16),

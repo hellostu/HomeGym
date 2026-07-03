@@ -33,6 +33,15 @@ final class ExerciseLibraryTests: XCTestCase {
         XCTAssertEqual(byName["Barbell Bench Press"]?.isUnilateral, false)
     }
 
+    func testRosterCoversPreviouslyMissingAreas() {
+        let byName = Dictionary(uniqueKeysWithValues: ExerciseLibrary.seedExercises().map { ($0.name, $0) })
+        XCTAssertEqual(byName["Standing Calf Raise"]?.muscleGroup, .legs)       // calves
+        XCTAssertEqual(byName["Incline DB Press"]?.muscleGroup, .chest)         // upper chest
+        XCTAssertEqual(byName["DB Rear Delt Fly"]?.muscleGroup, .shoulders)     // rear delts
+        XCTAssertEqual(byName["Bulgarian Split Squat"]?.muscleGroup, .legs)
+        XCTAssertEqual(byName["Bulgarian Split Squat"]?.isUnilateral, true)
+    }
+
     func testGlutesGroupHasHipDominantExercises() {
         let byName = Dictionary(uniqueKeysWithValues: ExerciseLibrary.seedExercises().map { ($0.name, $0) })
         XCTAssertEqual(byName["DB Romanian Deadlift"]?.muscleGroup, .glutes)
