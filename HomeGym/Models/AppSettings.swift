@@ -17,6 +17,9 @@ final class AppSettings {
     var pausedUntil: Date?
     /// Default rest-timer duration between sets, in seconds. Defaulted for migration.
     var restSeconds: Int = 90
+    /// Muscle groups the app has already introduced to the user. Lets a newly-added
+    /// group (e.g. Glutes) switch itself on once without re-enabling ones you turned off.
+    var knownMuscleGroupsRaw: [String] = []
 
     init(
         workStartHour: Int = 9,

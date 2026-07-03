@@ -112,6 +112,16 @@ enum ExerciseLibrary {
             "Hinge at the hips, pushing them back, lowering the weights along your legs.",
             "Drive your hips forward to stand, squeezing the glutes."
         ], tip: "Flat back, weights close, feel the hamstring stretch — don't round over."),
+        "Barbell Hip Thrust": Guidance(steps: [
+            "Sit on the floor with your upper back against the bench, barbell over your hips (use a pad).",
+            "Drive through your heels to lift your hips until your body is flat from shoulders to knees.",
+            "Squeeze your glutes hard at the top, then lower under control."
+        ], tip: "Tuck your chin and keep ribs down; push through the heels, not the lower back."),
+        "DB Glute Bridge": Guidance(steps: [
+            "Lie on your back, knees bent and feet flat, holding a dumbbell across your hips.",
+            "Drive through your heels to raise your hips into a straight line.",
+            "Squeeze your glutes at the top, then lower slowly."
+        ], tip: "Think posterior pelvic tilt — squeeze the glutes, don't arch the lower back.", singleDumbbell: true),
         "Ab-Wheel Rollout": Guidance(steps: [
             "Kneel and grip the wheel under your shoulders, core braced.",
             "Roll the wheel forward, extending as far as you can control without arching.",
@@ -158,11 +168,15 @@ enum ExerciseLibrary {
             Exercise(name: "Barbell Row", muscleGroup: .back, equipment: .barbell, startingWeight: 30),
             Exercise(name: "DB Pullover", muscleGroup: .back, equipment: .adjustableDumbbells, startingWeight: 12),
 
-            // Legs
+            // Legs (quad-dominant)
             Exercise(name: "Goblet Squat", muscleGroup: .legs, equipment: .adjustableDumbbells, startingWeight: 16),
             Exercise(name: "Barbell Squat", muscleGroup: .legs, equipment: .barbell, startingWeight: 40),
             Exercise(name: "DB Walking Lunge", muscleGroup: .legs, equipment: .adjustableDumbbells, startingWeight: 10),
-            Exercise(name: "DB Romanian Deadlift", muscleGroup: .legs, equipment: .adjustableDumbbells, startingWeight: 16),
+
+            // Glutes (hip-dominant)
+            Exercise(name: "DB Romanian Deadlift", muscleGroup: .glutes, equipment: .adjustableDumbbells, startingWeight: 16),
+            Exercise(name: "Barbell Hip Thrust", muscleGroup: .glutes, equipment: .barbell, startingWeight: 40),
+            Exercise(name: "DB Glute Bridge", muscleGroup: .glutes, equipment: .adjustableDumbbells, repRangeLower: 10, repRangeUpper: 15, startingWeight: 12),
 
             // Core
             Exercise(name: "Ab-Wheel Rollout", muscleGroup: .core, equipment: .bodyweight, repRangeLower: 6, repRangeUpper: 12, startingWeight: 0),
@@ -210,6 +224,30 @@ enum ExerciseLibrary {
             if exercise.formTip != g.tip { exercise.formTip = g.tip; changed = true }
             if exercise.isUnilateral != g.unilateral { exercise.isUnilateral = g.unilateral; changed = true }
             if exercise.usesSingleDumbbell != g.singleDumbbell { exercise.usesSingleDumbbell = g.singleDumbbell; changed = true }
+        }
+        if changed { try? context.save() }
+    }
+
+    /// Reconciles a previously-seeded store with the current catalogue: inserts any new
+    /// exercises (matched by name) and syncs each exercise's muscle group to the seed
+    /// (e.g. moving the Romanian Deadlift from Legs to Glutes). Runs cheaply on launch.
+    @MainActor
+    static func ensureExercises(_ context: ModelContext) {
+        let existing = (try? context.fetch(FetchDescriptor<Exercise>())) ?? []
+        guard !existing.isEmpty else { return }   // fresh stores are handled by seedIfNeeded
+        let byName = Dictionary(existing.map { ($0.name, $0) }, uniquingKeysWith: { a, _ in a })
+
+        var changed = false
+        for seed in seedExercises() {
+            if let stored = byName[seed.name] {
+                if stored.muscleGroupRaw != seed.muscleGroupRaw {
+                    stored.muscleGroupRaw = seed.muscleGroupRaw
+                    changed = true
+                }
+            } else {
+                context.insert(seed)
+                changed = true
+            }
         }
         if changed { try? context.save() }
     }

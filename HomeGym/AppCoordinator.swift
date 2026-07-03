@@ -32,7 +32,9 @@ final class AppCoordinator: ObservableObject {
         didBootstrap = true
 
         ExerciseLibrary.seedIfNeeded(context)
+        ExerciseLibrary.ensureExercises(context)
         ExerciseLibrary.ensureGuidance(context)
+        introduceNewMuscleGroups()
         calendar.refreshAuthorization()
         Task { await notifications.refreshAuthorization() }
 
@@ -42,6 +44,19 @@ final class AppCoordinator: ObservableObject {
         }
         scheduler.onFire = { [weak self] in self?.handleScheduledFire() }
         reloadSchedule()
+    }
+
+    /// Switches on any muscle group the user hasn't seen before (e.g. a newly-added
+    /// Glutes group), without re-enabling groups they've deliberately turned off.
+    private func introduceNewMuscleGroups() {
+        let known = Set(settings.knownMuscleGroupsRaw)
+        let newGroups = MuscleGroup.allCases.filter { !known.contains($0.rawValue) }
+        guard !newGroups.isEmpty else { return }
+        var enabled = settings.enabledMuscleGroups
+        newGroups.forEach { enabled.insert($0) }
+        settings.enabledMuscleGroups = enabled
+        settings.knownMuscleGroupsRaw = MuscleGroup.allCases.map(\.rawValue)
+        try? context.save()
     }
 
     /// Re-reads settings and arms the next prompt. Call after any settings change.

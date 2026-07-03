@@ -33,6 +33,16 @@ final class ExerciseLibraryTests: XCTestCase {
         XCTAssertEqual(byName["Barbell Bench Press"]?.isUnilateral, false)
     }
 
+    func testGlutesGroupHasHipDominantExercises() {
+        let byName = Dictionary(uniqueKeysWithValues: ExerciseLibrary.seedExercises().map { ($0.name, $0) })
+        XCTAssertEqual(byName["DB Romanian Deadlift"]?.muscleGroup, .glutes)
+        XCTAssertEqual(byName["Barbell Hip Thrust"]?.muscleGroup, .glutes)
+        XCTAssertEqual(byName["DB Glute Bridge"]?.muscleGroup, .glutes)
+        // Quad-dominant work stays under Legs.
+        XCTAssertEqual(byName["Barbell Squat"]?.muscleGroup, .legs)
+        XCTAssertEqual(byName["DB Walking Lunge"]?.muscleGroup, .legs)
+    }
+
     func testSingleDumbbellExercisesAreFlagged() {
         let byName = Dictionary(uniqueKeysWithValues: ExerciseLibrary.seedExercises().map { ($0.name, $0) })
         // One dumbbell (both hands or one at a time) → weight isn't "each".

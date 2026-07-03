@@ -8,6 +8,7 @@ enum MuscleGroup: String, CaseIterable, Codable, Identifiable {
     case chest
     case back
     case legs
+    case glutes
     case core
 
     var id: String { rawValue }
@@ -20,6 +21,7 @@ enum MuscleGroup: String, CaseIterable, Codable, Identifiable {
         case .chest: return "Chest"
         case .back: return "Back"
         case .legs: return "Legs"
+        case .glutes: return "Glutes"
         case .core: return "Core"
         }
     }
@@ -28,7 +30,7 @@ enum MuscleGroup: String, CaseIterable, Codable, Identifiable {
     var symbolName: String {
         switch self {
         case .biceps, .triceps, .shoulders, .chest, .back: return "figure.strengthtraining.traditional"
-        case .legs: return "figure.strengthtraining.functional"
+        case .legs, .glutes: return "figure.strengthtraining.functional"
         case .core: return "figure.core.training"
         }
     }

@@ -83,6 +83,9 @@ struct BodyHeatMap: View {
             muscle(roundedRect(center: CGPoint(x: 75, y: 138), width: 22, height: 48, radius: 8), color(for: .core), &ctx)
         } else {
             muscle(roundedRect(center: CGPoint(x: 75, y: 116), width: 44, height: 88, radius: 16), color(for: .back), &ctx)
+            // Glutes sit at the hips on the back view only.
+            muscle(ellipse(CGPoint(x: 83, y: 190), 11, 12), color(for: .glutes), &ctx)
+            muscle(ellipse(CGPoint(x: 67, y: 190), 11, 12), color(for: .glutes), &ctx)
         }
 
         // Thighs (quads front / hamstrings back — both the "legs" group).
