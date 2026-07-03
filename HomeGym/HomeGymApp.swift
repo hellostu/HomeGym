@@ -33,7 +33,7 @@ struct HomeGymApp: App {
                 .environmentObject(coordinator)
                 .modelContainer(container)
         }
-        .defaultSize(width: 720, height: 480)
+        .defaultSize(width: 760, height: 580)
 
         Window("Settings", id: "settings") {
             SettingsView()

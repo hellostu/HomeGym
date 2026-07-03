@@ -29,6 +29,8 @@ your desk for a full session.
 - **PR celebration**: beating a previous best (weight or reps) pops a celebration.
 - **Weekly consistency**: the menu shows how many workouts you've done this week.
 - **Launch at login**: optional, so it's always there without opening it.
+- **Weekly overview**: a front/back body heat-map showing which muscle groups you've
+  hit this week, plus global stats (workouts, sets, reps, volume, active days, streak).
 - **History & progress**: per-exercise session log and a top-weight trend chart.
 
 ## Running it
