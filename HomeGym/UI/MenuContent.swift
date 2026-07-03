@@ -11,6 +11,7 @@ struct MenuContent: View {
                 .font(.headline)
 
             statusLine
+            todayProgress
             weeklyLine
 
             Divider()
@@ -59,6 +60,27 @@ struct MenuContent: View {
         .buttonStyle(.plain)
         .padding(12)
         .frame(width: 240, alignment: .leading)
+    }
+
+    private var todayProgress: some View {
+        let done = coordinator.completedTodayCount()
+        let target = coordinator.dailyTarget
+        let hitTarget = done >= target
+        return HStack(spacing: 8) {
+            Image(systemName: hitTarget ? "checkmark.circle.fill" : "circle.dashed")
+                .foregroundStyle(hitTarget ? .green : .secondary)
+            Text("Today: \(done) / \(target)")
+                .foregroundStyle(hitTarget ? .primary : .secondary)
+            Spacer()
+            HStack(spacing: 4) {
+                ForEach(0..<max(target, done), id: \.self) { index in
+                    Circle()
+                        .fill(index < done ? Color.green : Color.secondary.opacity(0.3))
+                        .frame(width: 7, height: 7)
+                }
+            }
+        }
+        .font(.subheadline)
     }
 
     private var weeklyLine: some View {

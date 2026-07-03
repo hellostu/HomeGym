@@ -239,6 +239,16 @@ final class AppCoordinator: ObservableObject {
         }
     }
 
+    /// The user's daily snack-workout target.
+    var dailyTarget: Int { settings.targetWorkoutsPerDay }
+
+    /// Completed sessions so far today — shown as the daily progress in the menu.
+    func completedTodayCount() -> Int {
+        let startOfDay = Calendar.current.startOfDay(for: .now)
+        let all = (try? context.fetch(FetchDescriptor<SnackSession>())) ?? []
+        return all.filter { $0.completed && $0.date >= startOfDay }.count
+    }
+
     /// Completed sessions since the start of the current week — shown in the menu.
     func completedThisWeekCount() -> Int {
         let calendar = Calendar.current
