@@ -221,6 +221,9 @@ final class AppCoordinator: ObservableObject {
         guard let session = activeSession else { return }
         let hadSets = !session.sets.isEmpty
         session.completed = hadSets
+        // Stamp the completion time, so a session started earlier (or resumed from a
+        // previous day) counts toward the day it's actually finished.
+        session.date = .now
         session.exercise?.lastPerformed = .now
         try? context.save()
 
@@ -338,6 +341,9 @@ final class AppCoordinator: ObservableObject {
     /// still exists — what "Do a workout now" resumes so you can pick up where you left off.
     private func resumableSession() -> SnackSession? {
         let all = (try? context.fetch(FetchDescriptor<SnackSession>())) ?? []
-        return SessionResume.candidate(from: all)
+        // Only resume something from today; older unfinished sessions shouldn't
+        // hijack a fresh, balanced pick.
+        let today = all.filter { Calendar.current.isDateInToday($0.date) }
+        return SessionResume.candidate(from: today)
     }
 }

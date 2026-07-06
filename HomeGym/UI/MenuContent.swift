@@ -1,9 +1,22 @@
 import SwiftUI
+import SwiftData
 
 /// The menu-bar dropdown (window style): status line + quick actions.
 struct MenuContent: View {
     @EnvironmentObject private var coordinator: AppCoordinator
     @Environment(\.openWindow) private var openWindow
+    /// Live query so the counts update the moment a workout is logged/finished.
+    @Query(filter: #Predicate<SnackSession> { $0.completed }) private var completed: [SnackSession]
+
+    private var todayCount: Int {
+        let start = Calendar.current.startOfDay(for: .now)
+        return completed.filter { $0.date >= start }.count
+    }
+    private var weekCount: Int {
+        guard let weekStart = Calendar.current.dateInterval(of: .weekOfYear, for: .now)?.start else { return 0 }
+        return completed.filter { $0.date >= weekStart }.count
+    }
+    private var goalMet: Bool { todayCount >= coordinator.dailyTarget }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -63,7 +76,7 @@ struct MenuContent: View {
     }
 
     private var todayProgress: some View {
-        let done = coordinator.completedTodayCount()
+        let done = todayCount
         let target = coordinator.dailyTarget
         let hitTarget = done >= target
         return HStack(spacing: 8) {
@@ -84,7 +97,7 @@ struct MenuContent: View {
     }
 
     private var weeklyLine: some View {
-        let count = coordinator.completedThisWeekCount()
+        let count = weekCount
         return Label("\(count) workout\(count == 1 ? "" : "s") this week", systemImage: "flame")
             .foregroundStyle(.secondary)
     }
@@ -94,7 +107,7 @@ struct MenuContent: View {
         if coordinator.isPausedNow {
             Label("Paused until tomorrow", systemImage: "moon.zzz")
                 .foregroundStyle(.secondary)
-        } else if coordinator.dailyGoalMet {
+        } else if goalMet {
             Label("Done for today 🎉", systemImage: "checkmark.seal.fill")
                 .foregroundStyle(.green)
         } else if let next = coordinator.scheduler.nextFireDate {
