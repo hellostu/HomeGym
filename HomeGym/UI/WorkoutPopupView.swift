@@ -25,6 +25,7 @@ struct WorkoutPopupView: View {
                 }
             }
             entryRow
+            plateGuide
             restRow
             actions
         }
@@ -197,6 +198,20 @@ struct WorkoutPopupView: View {
                 Label("Log set", systemImage: "plus.circle.fill")
             }
             .buttonStyle(.borderedProminent)
+        }
+    }
+
+    /// Spells out the plates to load on each side of the bar for the current weight,
+    /// so Stu doesn't have to do the mental "(total − bar) ÷ 2" every set. Only shown
+    /// for the barbell / EZ bar; hidden when the bar is empty (no plates to add).
+    @ViewBuilder
+    private var plateGuide: some View {
+        if let equipment = exercise?.equipment,
+           let plates = PlateMath.perSideDescription(total: weight, equipment: equipment) {
+            Label("Each side: \(plates) kg", systemImage: "dumbbell.fill")
+                .font(.callout)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
         }
     }
 
