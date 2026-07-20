@@ -2,26 +2,28 @@ import SwiftUI
 import SwiftData
 import Charts
 
-/// History window: a holistic "This Week" overview and a per-exercise browser.
+/// History window: a "This Week" overview, multi-week trends, and a per-exercise browser.
 struct HistoryView: View {
-    private enum Tab: Hashable { case overview, exercises }
+    private enum Tab: Hashable { case overview, trends, exercises }
     @State private var tab: Tab = .overview
 
     var body: some View {
         VStack(spacing: 0) {
             Picker("", selection: $tab) {
                 Text("This Week").tag(Tab.overview)
+                Text("Trends").tag(Tab.trends)
                 Text("Exercises").tag(Tab.exercises)
             }
             .pickerStyle(.segmented)
             .labelsHidden()
-            .frame(maxWidth: 320)
+            .frame(maxWidth: 380)
             .padding(12)
 
             Divider()
 
             switch tab {
             case .overview: OverviewTab()
+            case .trends: TrendsTab()
             case .exercises: ExerciseHistoryTab()
             }
         }
@@ -56,31 +58,26 @@ private struct OverviewTab: View {
     }
 
     private func statTiles(_ stats: WeeklyStats, streak: Int) -> some View {
-        let volume = stats.totalVolumeKg
-        let volumeText = volume >= 1000
-            ? String(format: "%.1ft", volume / 1000)
-            : "\(Int(volume.rounded())) kg"
+        let lastWeek = Calendar.current.date(byAdding: .weekOfYear, value: -1, to: Date())
+            .map { StatsCalculator.weekly(completed: completed, now: $0) }
+        let change = TrendsCalculator.percentChange(
+            current: stats.totalVolumeKg,
+            previous: lastWeek?.totalVolumeKg ?? 0
+        )
         return LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 3), spacing: 12) {
-            tile("Workouts", "\(stats.workouts)", "figure.strengthtraining.traditional")
-            tile("Sets", "\(stats.totalSets)", "list.number")
-            tile("Reps", "\(stats.totalReps)", "repeat")
-            tile("Volume", volumeText, "scalemass")
-            tile("Active days", "\(stats.activeDays)", "calendar")
-            tile("Streak", "\(streak)\(streak == 1 ? " day" : " days")", "flame.fill")
+            StatTile(title: "Workouts", value: "\(stats.workouts)", symbol: "figure.strengthtraining.traditional")
+            StatTile(title: "Sets", value: "\(stats.totalSets)", symbol: "list.number")
+            StatTile(title: "Reps", value: "\(stats.totalReps)", symbol: "repeat")
+            StatTile(
+                title: "Volume",
+                value: StatTile.volumeText(stats.totalVolumeKg),
+                symbol: "scalemass",
+                caption: change.map { String(format: "%+.0f%% vs last week", $0) },
+                captionColor: StatTile.deltaColor(change ?? 0)
+            )
+            StatTile(title: "Active days", value: "\(stats.activeDays)", symbol: "calendar")
+            StatTile(title: "Streak", value: "\(streak)\(streak == 1 ? " day" : " days")", symbol: "flame.fill")
         }
-    }
-
-    private func tile(_ title: String, _ value: String, _ symbol: String) -> some View {
-        VStack(spacing: 4) {
-            Label(title, systemImage: symbol)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .labelStyle(.titleAndIcon)
-            Text(value).font(.title2.weight(.semibold)).monospacedDigit()
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 14)
-        .background(RoundedRectangle(cornerRadius: 12).fill(.quaternary.opacity(0.4)))
     }
 
     private func perGroupBreakdown(_ stats: WeeklyStats) -> some View {
